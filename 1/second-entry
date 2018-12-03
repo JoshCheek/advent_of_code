@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+sum  = 0
+seen = {}
+$stdin.readlines.map(&:to_i).cycle.each do |n|
+  break if seen[sum]
+  seen[sum] = true
+  sum += n
+end
+p sum
