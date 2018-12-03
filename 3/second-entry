@@ -7,19 +7,14 @@ BEGIN {
 
 id, x, y, w, h = $_.scan(/\d+/).map(&:to_i)
 ids[id] = false
-x.upto x+w-1 do |crnt_x|
-  y.upto y+h-1 do |crnt_y|
-    squares[[crnt_x, crnt_y]] << id
-  end
+x.upto(x+w-1) do |crnt_x|
+  y.upto(y+h-1) { |crnt_y| squares[[crnt_x, crnt_y]] << id }
 end
 
-
 END {
-  squares
-    .values
-    .reject { |xy_ids| xy_ids.size < 2 }
-    .flatten
-    .each { |id| ids[id] = true }
-
-  puts ids.reject { |id, overlaps| overlaps }.map(&:first)
+  squares.each do |_, xy_ids|
+    next if xy_ids.size < 2
+    xy_ids.each { |id| ids[id] = true }
+  end
+  ids.each { |id, overlaps| puts id unless overlaps }
 }
