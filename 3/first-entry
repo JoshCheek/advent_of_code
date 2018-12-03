@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby -n
+
+BEGIN { squares = Hash.new 0 }
+END   { p squares.count { |xy, count| count > 1 } }
+
+*, x, y, w, h = $_.scan(/\d+/).map(&:to_i)
+x.upto x+w-1 do |crnt_x|
+  y.upto y+h-1 do |crnt_y|
+    squares[[crnt_x, crnt_y]] += 1
+  end
+end

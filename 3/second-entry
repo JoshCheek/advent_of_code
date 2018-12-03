@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby -n
+
+BEGIN {
+  squares = Hash.new { |h, k| h[k] = [] }
+  ids = {}
+}
+
+id, x, y, w, h = $_.scan(/\d+/).map(&:to_i)
+ids[id] = false
+x.upto x+w-1 do |crnt_x|
+  y.upto y+h-1 do |crnt_y|
+    squares[[crnt_x, crnt_y]] << id
+  end
+end
+
+
+END {
+  squares
+    .values
+    .reject { |xy_ids| xy_ids.size < 2 }
+    .flatten
+    .each { |id| ids[id] = true }
+
+  puts ids.reject { |id, overlaps| overlaps }.map(&:first)
+}
