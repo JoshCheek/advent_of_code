@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby -n
+BEGIN { two = three = 0 }
+sizes = $_.chars.group_by(&:itself).values.map(&:size)
+two   += 1 if sizes.include? 2
+three += 1 if sizes.include? 3
+END { p two * three }

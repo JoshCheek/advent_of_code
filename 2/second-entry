@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby -ln
+
+BEGIN { words = [] }
+crnt = $_.chars
+words.each do |prev|
+  common = prev.zip(crnt).select { |l1, l2| l1 == l2 }
+  next unless common.size == crnt.size.pred
+  puts common.transpose.first.join
+end
+words << crnt
