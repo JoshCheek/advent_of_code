@@ -1,6 +1,6 @@
 $stdin = File.open File.expand_path('input', __dir__)
 
-$stdin
+counts = $stdin
   .each_line
   .map { |line|
     timestamp, log = line.split ']'
@@ -23,6 +23,11 @@ $stdin
   .transform_values { |shifts|
     shifts.flat_map(&:last).group_by(&:itself).transform_values(&:size)
   }
-  .max_by { |_, counts| counts.values.sum }
-  .tap { |guard, counts| break guard * counts.max_by(&:last).first }
-  # => 8421
+
+# strategy 1
+guard, minute_counts = counts.max_by { |_, counts| counts.values.sum }
+guard * minute_counts.max_by(&:last).first # => 8421
+
+# strategy 2
+guard, minute_counts = counts.max_by { |_, counts| counts.values.max||0 }
+guard * minute_counts.max_by(&:last).first # => 83359
