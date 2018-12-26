@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+state, rules = $stdin.read.split("\n\n")
+state = state.split[-1]
+state = state.chars.each_with_index.with_object({}) { |(char, index), state| state[index] = '#' == char }
+
+rules = rules
+  .lines
+  .map { |rule| rule.split("=>").map &:strip }
+  .map { |input, output|
+    num = 0
+    num += 16 if '#' == input[0]
+    num +=  8 if '#' == input[1]
+    num +=  4 if '#' == input[2]
+    num +=  2 if '#' == input[3]
+    num +=  1 if '#' == input[4]
+    [num, '#' == output]
+  }
+  .sort
+  .map(&:last)
+
+
+
+20.times do |index|
+  printf "%2d: ", index
+  -3.upto(35).map { |i| print state[i] ? '#' : '.' }
+  puts
+
+  min = state.keys.min - 2
+  max = state.keys.max + 2
+  next_state = {}
+  min.upto max do |plant_index|
+    num = 0
+    num += 16 if state[plant_index-2]
+    num +=  8 if state[plant_index-1]
+    num +=  4 if state[plant_index]
+    num +=  2 if state[plant_index+1]
+    num +=  1 if state[plant_index+2]
+    next_state[plant_index] = true if rules[num]
+  end
+  state = next_state
+end
+
+puts
+p state.sum { |index, value| index }
