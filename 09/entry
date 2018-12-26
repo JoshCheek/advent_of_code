@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+def score(num_players, max_marble)
+  scores  = Hash.new
+  players = num_players.times.map(&:succ)
+  players.each { |player| scores[player] = 0 }
+
+  marbles = [0]
+  max_marble.times.map(&:succ).zip(players.cycle).each do |marble, player|
+    if marble % 23 == 0
+      scores[player] += marble
+      marbles.rotate! -7
+      scores[player] += marbles.delete_at(0)
+    else
+      marbles.rotate! 2
+      marbles.insert 0, marble
+    end
+  end
+
+  scores.values.max
+end
+
+$stdin.each_line do |line|
+  num_players, max_marble, expected_score = line.scan(/\d+/).map(&:to_i)
+  actual_score = score(num_players, max_marble)
+  if expected_score
+    p score: actual_score, correct: expected_score == actual_score
+  else
+    puts actual_score
+  end
+end
