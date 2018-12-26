@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+require 'set'
+
+if false
+  stream = DATA
+  cutoff = 32
+else
+  stream = $stdin.dup
+  cutoff = 10_000
+  $stdin.reopen "/dev/tty"
+end
+
+def self.in_region?(x, y, points, cutoff)
+  distance = 0
+  points.each do |px, py|
+    distance += (x-px).abs
+    distance += (y-py).abs
+    break if distance > cutoff
+  end
+  distance < cutoff
+end
+
+points = stream.read.scan(/\d+/).map(&:to_i).each_slice(2).to_a
+
+width, height = points.transpose.map(&:max).map(&:succ)
+grid = Array.new height do |y|
+  Array.new(width) { |x| in_region? x, y, points, cutoff }
+end
+
+def display(grid, points)
+  rows = grid.map { |row| row.map { |within| within ? '#' : '.' } }
+  name = 'A'
+  points.each do |x, y|
+    rows[y][x] = name
+    name = name.succ
+  end
+  rows.map(&:join).join("\n").tap do |s|
+    s.define_singleton_method(:inspect) { self }
+  end
+end
+
+p grid.sum { |row| row.count &:itself }  # => 16
+display grid, points
+# => .........
+#    .A.......
+#    .........
+#    ...###..C
+#    ..#D###..
+#    ..###E#..
+#    .B.###...
+#    .........
+#    .........
+#    ........F
+
+# >> 16
+
+
+__END__
+1, 1
+1, 6
+8, 3
+3, 4
+5, 5
+8, 9
