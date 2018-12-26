@@ -1,0 +1,125 @@
+#!/usr/bin/env ruby
+
+Cart = Struct.new :pos, :direction, :turn_direction do
+  def to_s
+    case direction
+    when -1i then '^'
+    when   1 then '>'
+    when  1i then 'v'
+    when  -1 then '<'
+    else raise "Wat: #{direction.inspect}"
+    end
+  end
+
+  def x
+    pos.real
+  end
+
+  def y
+    pos.imaginary
+  end
+
+  def <=>(cart)
+    return -1 if y < cart.y
+    return  1 if y > cart.y
+    return -1 if x < cart.x
+    return  1 if x > cart.x
+    return  0
+  end
+
+  def collide?(cart)
+    self != cart && pos == cart.pos
+  end
+
+  def advance(map)
+    self.pos += self.direction
+
+    track = map[y][x]
+    if track == "+"
+      self.direction *= turn_direction
+      self.turn_direction *= 1i
+      self.turn_direction *= 1i if turn_direction == -1
+    elsif track == "/"
+      case direction
+      when -1i
+        self.direction = 1
+      when 1
+        self.direction = -1i
+      when 1i
+        self.direction = -1
+      when -1
+        self.direction = 1i
+      end
+    elsif track == "\\"
+      case direction
+      when -1i
+        self.direction = -1
+      when 1
+        self.direction = 1i
+      when 1i
+        self.direction = 1
+      when -1
+        self.direction = -1i
+      end
+    end
+  end
+end
+
+def show(map, carts)
+  lines = map.map &:join
+  carts.group_by(&:pos).each do |pos, carts|
+    if carts.size > 1
+      str = "X"
+    else
+      str = carts.first.to_s
+    end
+    lines[pos.imaginary][pos.real] = str
+  end
+  lines.join("\n")
+end
+
+def iterate(map, carts)
+  carts.sort!
+  carts.each do |cart|
+    cart.advance map
+    throw :collision, cart.pos if carts.any? { |other| cart.collide? other }
+  end
+end
+
+carts = []
+map = $stdin.readlines.map.with_index do |line, y|
+  line.chomp.chars.map.with_index do |char, x|
+    case char
+    when '^'
+      char = '|'
+      carts << Cart.new(x + y*1i, -1i, -1i)
+    when '>'
+      char = '-'
+      carts << Cart.new(x + y*1i,   1, -1i)
+    when 'v'
+      char = '|'
+      carts << Cart.new(x + y*1i,  1i, -1i)
+    when '<'
+      char = '-'
+      carts << Cart.new(x + y*1i,  -1, -1i)
+    end
+    char
+  end
+end
+
+
+num_iterations = ARGV.first&.to_i || Float::INFINITY
+puts show(map, carts)
+collision_position = catch :collision do
+  (0...num_iterations).each do
+    puts
+    iterate map, carts
+    puts show(map, carts)
+  end
+  nil
+end
+
+if collision_position
+  puts show(map, carts)
+  p collision_position
+end
