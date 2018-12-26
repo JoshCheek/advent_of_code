@@ -1,0 +1,75 @@
+#!/usr/bin/env ruby
+Point = Struct.new :x, :y, :dx, :dy do
+  def forward
+    self.x += dx
+    self.y += dy
+    self
+  end
+
+  def backward
+    self.x -= dx
+    self.y -= dy
+  end
+end
+
+points = []
+$stdin.each_line do |line|
+  points << Point.new(*line.scan(/-?\d+/).map(&:to_i))
+end
+
+
+require 'io/console'
+$stdin.reopen "/dev/tty"
+$stdin.raw!
+at_exit { $stdin.cooked! }
+print "\e[?25l"
+at_exit { print "\e[?25h" }
+
+seconds = 0
+
+loop do
+  xmin = points.min_by(&:x).x
+  xmax = points.max_by(&:x).x
+  ymin = points.min_by(&:y).y
+  ymax = points.max_by(&:y).y
+  width  = xmax-xmin+1
+  height = ymax-ymin+1
+
+  print "\e[H\e[2J"
+  puts "seconds = #{seconds}\r"
+  puts "∆x = #{xmin}..#{xmax} = #{width}\r"
+  puts "∆y = #{ymin}..#{ymax} = #{height}\r"
+  puts
+  puts "s = show\r"
+  puts "n = next\r"
+  puts "N = next (50)\r"
+  puts "p = prev\r"
+  puts "P = prev (50)\r"
+  puts "q = quit\r"
+
+  key = $stdin.getc
+  case key
+  when "s"
+    sky = Array.new(height) { |y| Array.new width, " " }
+    points.map { |point| [point.x-xmin, point.y-ymin] }.each do |x, y|
+      sky[y][x] = "#"
+    end
+    print "\e[H\e[2J"
+    puts sky.map(&:join).join("\r\n")
+    $stdin.getc
+  when "n"
+    points.each &:forward
+    seconds += 1
+  when "N"
+    50.times { points.each &:forward }
+    seconds += 50
+  when "p"
+    points.each &:backward
+    seconds -= 1
+  when "P"
+    50.times { points.each &:backward }
+    seconds -= 50
+  when "q", ?\C-c, ?\C-d
+    exit
+  end
+end
