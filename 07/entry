@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+dependencies = Hash.new do |h, k|
+  h[k] = []
+end
+
+$stdin.read.scan(/step (\w+)/i).each_slice(2).map(&:flatten).each do |prev, crnt|
+  dependencies[prev]
+  dependencies[crnt] << prev
+end
+
+order = []
+
+until dependencies.empty?
+  crnt = dependencies.select { |name, deps| deps.empty? }.map(&:first).sort.first
+  order << crnt
+  dependencies.delete crnt
+  dependencies.each { |_, deps| deps.delete crnt }
+end
+
+puts order.join
