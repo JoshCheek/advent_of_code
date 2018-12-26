@@ -4,16 +4,33 @@ def score(num_players, max_marble)
   scores  = Hash.new
   players = num_players.times.map(&:succ)
   players.each { |player| scores[player] = 0 }
+  player_queue = players.cycle
 
   marbles = [0]
-  max_marble.times.map(&:succ).zip(players.cycle).each do |marble, player|
+  index   = 0
+  start   = Time.now
+  max_marble.times do |marble|
+    if marble % 70_000 == 0
+      time = Time.now
+      p percent: (marble * 100 / max_marble.to_f).round(2),
+        marble: marble, of: max_marble,
+        board_size: marbles.size,
+        seconds: time-start
+      start = time
+    end
+    marble += 1
+    player = player_queue.next
+
     if marble % 23 == 0
       scores[player] += marble
-      marbles.rotate! -7
-      scores[player] += marbles.delete_at(0)
+      index -= 7
+      index %= marbles.size
+      scores[player] += marbles[index]
+      marbles.delete_at index
     else
-      marbles.rotate! 2
-      marbles.insert 0, marble
+      index += 2
+      index %= marbles.size
+      marbles.insert index, marble
     end
   end
 
