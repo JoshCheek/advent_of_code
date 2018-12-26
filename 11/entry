@@ -23,29 +23,64 @@ def build_grid(serial_number)
   end
 end
 
-def all_squares(grid)
-  return to_enum :all_squares, grid unless block_given?
-  grid.each_cons(3).each.with_index(1) do |rows, y|
-    rows.map { |row| row.each_cons(3).to_a }.transpose.each.with_index(1) do |square, x|
-      yield x, y, square
+def sums_for(nums, size)
+  sums = []
+  x    = 0
+  sum  = 0
+  size.times {
+    sum += nums[x]
+    x += 1
+  }
+  sums << sum
+  while x < nums.size
+    sum -= nums[x-size]
+    sum += nums[x]
+    sums << sum
+    x += 1
+  end
+  sums
+end
+
+def find_best(sums_by_col)
+  best_x = best_y = nil
+  best = -Float::INFINITY
+  sums_by_col.each_with_index do |colsums, x|
+    colsums.each_with_index do |sum, y|
+      next unless best < sum
+      best, best_x, best_y = sum, x, y
     end
   end
+  [best_x+1, best_y+1, best]
 end
 
-def best_square(grid)
-  all_squares(grid).max_by { |x, y, rows| rows.flatten.sum }
+def find_best_by_size(grid, size)
+  sums_by_col =
+    grid.map { |row| sums_for row, size }
+        .transpose
+        .map { |col| sums_for col, size }
+  find_best sums_by_col
 end
 
+def find_best_for_all_sizes(grid)
+  best_x = best_y = best_size = nil
+  best = -Float::INFINITY
+  1.upto(300).map do |size|
+    x, y, sum = find_best_by_size(grid, size)
+    next unless best < sum
+    best, best_size, best_x, best_y = sum, size, x, y
+  end
+  [best_x, best_y, best_size, best]
+end
 
-
-best_square(build_grid(18)) # => [33, 45, [[4, 4, 4], [3, 3, 4], [1, 2, 4]]]
-  .first(2)                 # => [33, 45]
-
-best_square(build_grid(42)) # => [21, 61, [[4, 3, 3], [3, 3, 4], [3, 3, 4]]]
-  .first(2)                 # => [21, 61]
+grid = build_grid 8868
 
 # part 1
-best_square(build_grid(8868))         # => [241, 40, [[4, 3, 4], [4, -1, 4], [4, 4, 4]]]
-  .first(2)                           # => [241, 40]
-  .tap { |x, y| break p "#{x},#{y}" } # => "241,40"
+x, y, sum = find_best_by_size(grid, 3)  # => [241, 40, 30]
+puts "#{x},#{y}"
 
+# part 2
+x, y, size, sum = find_best_for_all_sizes(grid) # => [166, 75, 12, 71]
+puts "#{x},#{y},#{size}"
+
+# >> 241,40
+# >> 166,75,12
