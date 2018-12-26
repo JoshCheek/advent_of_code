@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+num_iterations = (ARGV[0]||'20').to_i
+
 state, rules = $stdin.read.split("\n\n")
 state = state.split[-1]
 state = state.chars.each_with_index.with_object({}) { |(char, index), state| state[index] = '#' == char }
@@ -19,12 +21,25 @@ rules = rules
   .sort
   .map(&:last)
 
+def first(state)
+  state.keys.sort.find { |k| state[k] }
+end
+def last(state)
+  state.keys.sort.reverse.find { |k| state[k] }
+end
 
+def relative_view(state)
+  (first(state)..last(state)).map { |i| state[i] }
+end
 
-20.times do |index|
-  printf "%2d: ", index
-  -3.upto(35).map { |i| print state[i] ? '#' : '.' }
-  puts
+index = num_iterations.times do |index|
+  p index if index % 1_000_000 == 0
+
+  # if num_iterations == 20
+    printf "%2d: ", index
+    -3.upto(250).map { |i| print state[i] ? '#' : '.' }
+    puts
+  # end
 
   min = state.keys.min - 2
   max = state.keys.max + 2
@@ -38,8 +53,21 @@ rules = rules
     num +=  1 if state[plant_index+2]
     next_state[plant_index] = true if rules[num]
   end
+
+  # part 2
+  if relative_view(state) == relative_view(next_state)
+    f1           = first state
+    f2           = first next_state
+    row_offset   = f2 - f1
+    rows_left    = num_iterations - index
+    final_offset = rows_left * row_offset
+    p state.select { |k, v| v }.map { |k, v| k + final_offset }.sum
+    exit
+  end
+
   state = next_state
 end
 
+# part1
 puts
 p state.sum { |index, value| index }
