@@ -1,4 +1,43 @@
 #!/usr/bin/env ruby
+Marble = Struct.new :value, :pred, :succ do
+  def initialize(value, pred=self, succ=self)
+    super value, pred, succ
+  end
+
+  def delete
+    pred = self.pred
+    succ = self.succ
+    pred.succ = succ
+    succ.pred = pred
+    return succ
+  end
+
+  def insert(value)
+    pred     = self.pred
+    succ     = self.succ
+    inserted = Marble.new value, pred, self
+    pred.succ = inserted
+    self.pred = inserted
+    inserted
+  end
+
+  def rotate(n)
+    return self if n.zero?
+    return succ.rotate n-1 if n.positive?
+    return pred.rotate n+1
+  end
+
+  def inspect
+    crnt = self
+    inspected = "#{value}"
+    loop do
+      crnt = crnt.succ
+      break if crnt == self
+      inspected << " #{crnt.value}"
+    end
+    inspected
+  end
+end
 
 def score(num_players, max_marble)
   scores  = Hash.new
@@ -6,31 +45,30 @@ def score(num_players, max_marble)
   players.each { |player| scores[player] = 0 }
   player_queue = players.cycle
 
-  marbles = [0]
-  index   = 0
-  start   = Time.now
-  max_marble.times do |marble|
-    if marble % 70_000 == 0
+  marbles = Marble.new 0
+  marbles.pred = marbles.succ = marbles
+
+  start = Time.now
+  max_marble.times do |value|
+    value += 1
+    if value % 70_000 == 0
       time = Time.now
-      p percent: (marble * 100 / max_marble.to_f).round(2),
-        marble: marble, of: max_marble,
+      p percent: (value * 100 / max_marble.to_f).round(2),
+        marble: value, of: max_marble,
         board_size: marbles.size,
         seconds: time-start
       start = time
     end
-    marble += 1
+
     player = player_queue.next
 
-    if marble % 23 == 0
-      scores[player] += marble
-      index -= 7
-      index %= marbles.size
-      scores[player] += marbles[index]
-      marbles.delete_at index
+    if value % 23 == 0
+      scores[player] += value
+      marbles = marbles.rotate -7
+      scores[player] += marbles.value
+      marbles = marbles.delete
     else
-      index += 2
-      index %= marbles.size
-      marbles.insert index, marble
+      marbles = marbles.rotate(2).insert(value)
     end
   end
 
