@@ -78,11 +78,29 @@ def show(map, carts)
   lines.join("\n")
 end
 
-def iterate(map, carts)
-  carts.sort!
-  carts.each do |cart|
-    cart.advance map
-    throw :collision, cart.pos if carts.any? { |other| cart.collide? other }
+strategy = ENV.fetch 'COLLISION_STRATEGY', 'quit'
+if strategy == 'quit'
+  def iterate(map, carts)
+    carts.sort!
+    carts.each do |cart|
+      cart.advance map
+      throw :result, cart.pos if carts.any? { |other| cart.collide? other }
+    end
+  end
+else
+  def iterate(map, carts)
+    carts.sort!
+    collision_positions = []
+    carts.each do |cart|
+      next if collision_positions.include? cart.pos
+      cart.advance map
+      next if carts.none? { |other| cart.collide? other }
+      collision_positions << cart.pos
+    end
+    carts.reject! do |cart|
+      collision_positions.include? cart.pos
+    end
+    throw :result, carts.first.pos if carts.one?
   end
 end
 
@@ -108,18 +126,19 @@ map = $stdin.readlines.map.with_index do |line, y|
 end
 
 
+do_print = ENV['PRINT'] != 'false'
+
 num_iterations = ARGV.first&.to_i || Float::INFINITY
-puts show(map, carts)
-collision_position = catch :collision do
+puts show(map, carts) if do_print
+result = catch :result do
   (0...num_iterations).each do
-    puts
     iterate map, carts
-    puts show(map, carts)
+    puts "", show(map, carts) if do_print
   end
   nil
 end
 
-if collision_position
-  puts show(map, carts)
-  p collision_position
+if result
+  puts show(map, carts) if do_print
+  p result
 end
