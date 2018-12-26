@@ -10,11 +10,8 @@ end
 
 def each(tree, &block)
   return to_enum :each, tree unless block
-  name     = tree[:name]
-  children = tree[:children]
-  metadata = tree[:metadata]
-  block.call name, children, metadata
-  children.each { |child| each child, &block }
+  block.call tree
+  tree[:children].each { |child| each child, &block }
   nil
 end
 
@@ -35,5 +32,25 @@ pp tree
 
 puts
 
-puts "----- Metadata Sum -----"
-p each(tree).sum { |name, children, metadata| metadata.sum }
+puts "----- Metadata Sum (part 1) -----"
+p each(tree).sum { |metadata:, **| metadata.sum }
+
+puts
+
+puts "----- Root Value (part 2) -----"
+set_values = lambda do |node|
+  next if node[:value]
+  children = node.fetch :children
+  metadata = node.fetch :metadata
+  children.each { |child| each(child, &set_values) }
+  node[:value] = if children.empty?
+    metadata.sum
+  else
+    referenced_children = metadata.select { |i| 0 < i && i <= children.size }.map { |i| children[i-1] }
+    referenced_children.sum { |value:, **| value }
+  end
+end
+
+each tree, &set_values
+
+p tree[:value]
