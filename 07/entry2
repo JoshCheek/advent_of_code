@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+
+num_workers, base_seconds = ARGV.map(&:to_i)
+num_workers += 1 # b/c we are working on it, too
+
+dependencies = Hash.new do |h, k|
+  h[k] = []
+end
+
+$stdin.read.scan(/step (\w+)/i).each_slice(2).map(&:flatten).each do |prev, crnt|
+  dependencies[prev]
+  dependencies[crnt] << prev
+end
+
+workers = Array.new num_workers, [nil, 0]
+done    = []
+
+def take_task(dependencies)
+  crnt = dependencies.select { |name, deps| deps.empty? }.map(&:first).sort.first
+  return unless crnt
+  dependencies.delete crnt
+  crnt
+end
+
+def seconds_for(task, base_seconds)
+  base_seconds + task.ord - 'A'.ord
+end
+
+printf "Second  %s  Done\n", workers.each_index.map { |i| "Worker #{i+1}" }.join('  ')
+
+0.step do |second|
+  break if dependencies.empty? && workers.none? { |task, seconds_left| task }
+  workers = workers.map do |(task, seconds_left)|
+    if seconds_left.zero?
+      if task
+        done << task
+        dependencies.each { |_, deps| deps.delete task }
+      end
+      if (task = take_task dependencies)
+        [task, seconds_for(task, base_seconds)]
+      else
+        [nil, 0]
+      end
+    else
+      [task, seconds_left-1]
+    end
+  end
+  worker_format = workers.map { "%4s    " }.join('  ')
+  printf "%4s    #{worker_format} %s\n", second, *workers.map { |task, seconds_left| task || '.' }, done.join
+end
