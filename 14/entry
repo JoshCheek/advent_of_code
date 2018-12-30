@@ -1,0 +1,88 @@
+#!/usr/bin/env ruby
+
+def simulate_one(recipes, positions)
+  recipes.concat positions
+    .reduce(0) { |sum, position| sum + recipes[position] }
+    .digits.reverse
+  positions.map! do |position|
+    (position + recipes[position].succ) % recipes.size
+  end
+end
+
+
+def simulate(num_workers, recipes)
+  positions = num_workers.times.to_a
+  Enumerator.new do |y|
+    loop do
+      y.<< recipes, positions
+      simulate_one recipes, positions
+    end
+  end
+end
+
+
+# part 1
+def score_after(num_practice, num_workers, initial_recipes)
+  simulate(num_workers, initial_recipes).each do |recipes, _|
+    next if recipes.length < num_practice+10
+    break recipes.drop(num_practice).take(10)
+  end
+end
+score_after(5,    2, [3, 7]).join == "0124515891" # => true
+score_after(9,    2, [3, 7]).join == "5158916779" # => true
+score_after(18,   2, [3, 7]).join == "9251071085" # => true
+score_after(2018, 2, [3, 7]).join == "5941429882" # => true
+
+p score_after(327901, 2, [3, 7]).join # => "1115317115"
+
+
+# part 2
+def score_left_of(target, num_workers, initial_recipes)
+  checked, size, target = -1, target.size, target.chars.map(&:to_i)
+  simulate(num_workers, initial_recipes).each do |recipes, _|
+    (checked.succ...recipes.size-size).each do |recipe_index|
+      checked = recipe_index
+      match = true
+      for i in 0...size
+        break match = false unless recipes[recipe_index+i] == target[i]
+      end
+      return recipe_index if match
+    end
+  end
+end
+
+score_left_of("51589", 2, [3, 7]) == 9    # => true
+score_left_of("01245", 2, [3, 7]) == 5    # => true
+score_left_of("92510", 2, [3, 7]) == 18   # => true
+score_left_of("59414", 2, [3, 7]) == 2018 # => true
+
+p score_left_of("327901", 2, [3, 7]) # => 20229822
+
+
+# reproducing the example view
+simulate(2, [3, 7]).each_with_index do |(recipes, positions), index|
+  break if index > 15
+  recipes = recipes.dup
+  positions.each_with_index do |p, i|
+    open, close = i.zero? ? %w{( )} : %w{[ ]}
+    recipes[p] = "#{open}#{recipes[p]}#{close}"
+  end
+  puts recipes.map { |r| r.to_s.center(3) }.join
+end
+
+# >> (3)[7]
+# >> (3)[7] 1  0
+# >>  3  7  1 [0](1) 0
+# >>  3  7  1  0 [1] 0 (1)
+# >> (3) 7  1  0  1  0 [1] 2
+# >>  3  7  1  0 (1) 0  1  2 [4]
+# >>  3  7  1 [0] 1  0 (1) 2  4  5
+# >>  3  7  1  0 [1] 0  1  2 (4) 5  1
+# >>  3 (7) 1  0  1  0 [1] 2  4  5  1  5
+# >>  3  7  1  0  1  0  1  2 [4](5) 1  5  8
+# >>  3 (7) 1  0  1  0  1  2  4  5  1  5  8 [9]
+# >>  3  7  1  0  1  0  1 [2] 4 (5) 1  5  8  9  1  6
+# >>  3  7  1  0  1  0  1  2  4  5 [1] 5  8  9  1 (6) 7
+# >>  3  7  1  0 (1) 0  1  2  4  5  1  5 [8] 9  1  6  7  7
+# >>  3  7 [1] 0  1  0 (1) 2  4  5  1  5  8  9  1  6  7  7  9
+# >>  3  7  1  0 [1] 0  1  2 (4) 5  1  5  8  9  1  6  7  7  9  2
