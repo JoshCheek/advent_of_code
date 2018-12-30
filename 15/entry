@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+class Instruction
+  def initialize(name, &impl)
+    @name = name
+    @impl = impl
+  end
+
+  def inspect
+    "#<Instruction #@name>"
+  end
+
+  def call(registers:, a:, b:, c:)
+    registers = registers.dup
+    @impl.call registers, a, b, c
+    registers
+  end
+end
+
+instructions = [
+  addr = Instruction.new("ADDR") { |rs, a, b, c| rs[c] = rs[a] + rs[b] },
+  addi = Instruction.new("ADDI") { |rs, a, b, c| rs[c] = rs[a] + b     },
+  mulr = Instruction.new("MULR") { |rs, a, b, c| rs[c] = rs[a] * rs[b] },
+  muli = Instruction.new("MULI") { |rs, a, b, c| rs[c] = rs[a] * b     },
+  banr = Instruction.new("BANR") { |rs, a, b, c| rs[c] = rs[a] & rs[b] },
+  bani = Instruction.new("BANI") { |rs, a, b, c| rs[c] = rs[a] & b     },
+  borr = Instruction.new("BORR") { |rs, a, b, c| rs[c] = rs[a] | rs[b] },
+  bori = Instruction.new("BORI") { |rs, a, b, c| rs[c] = rs[a] | b     },
+  setr = Instruction.new("SETR") { |rs, a, b, c| rs[c] = rs[a]         },
+  seti = Instruction.new("SETI") { |rs, a, b, c| rs[c] = a             },
+  gtir = Instruction.new("GTIR") { |rs, a, b, c| rs[c] =    a  >  rs[b] ? 1 : 0 },
+  gtri = Instruction.new("GTRI") { |rs, a, b, c| rs[c] = rs[a] >      b ? 1 : 0 },
+  gtrr = Instruction.new("GTRR") { |rs, a, b, c| rs[c] = rs[a] >  rs[b] ? 1 : 0 },
+  eqir = Instruction.new("EQIR") { |rs, a, b, c| rs[c] =    a  == rs[b] ? 1 : 0 },
+  eqri = Instruction.new("EQRI") { |rs, a, b, c| rs[c] = rs[a] ==     b ? 1 : 0 },
+  eqrr = Instruction.new("EQRR") { |rs, a, b, c| rs[c] = rs[a] == rs[b] ? 1 : 0 },
+]
+
+# Part 1
+File
+  .read(File.join(__dir__, 'input1'))
+  .scan(/\d+/)
+  .map(&:to_i)
+  .each_slice(4)
+  .each_slice(3)
+  .count { |before, (_opcode, a, b, c), after|
+    3 >= instructions.count { |instruction|
+      after == instruction.call(registers: before, a: a, b: b, c: c)
+    }
+  }
+  # => 249
+  # wrong :(
