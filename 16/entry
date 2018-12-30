@@ -17,7 +17,7 @@ class Instruction
   end
 end
 
-instructions = [
+Instruction::ALL = [
   addr = Instruction.new("ADDR") { |rs, a, b, c| rs[c] = rs[a] + rs[b] },
   addi = Instruction.new("ADDI") { |rs, a, b, c| rs[c] = rs[a] + b     },
   mulr = Instruction.new("MULR") { |rs, a, b, c| rs[c] = rs[a] * rs[b] },
@@ -37,16 +37,22 @@ instructions = [
 ]
 
 # Part 1
+def potential_opcodes(before, after, (_op, a, b, c))
+  Instruction::ALL.select do |instruction|
+    after == instruction.call(registers: before, a: a, b: b, c: c)
+  end
+end
+
+def part1(before, after, instruction)
+  potentials = potential_opcodes before, after, instruction
+  3 <= potentials.size
+end
+
 File
   .read(File.join(__dir__, 'input1'))
   .scan(/\d+/)
   .map(&:to_i)
   .each_slice(4)
   .each_slice(3)
-  .count { |before, (_opcode, a, b, c), after|
-    3 >= instructions.count { |instruction|
-      after == instruction.call(registers: before, a: a, b: b, c: c)
-    }
-  }
-  # => 249
-  # wrong :(
+  .count { |before, instruction, after| part1 before, after, instruction }
+  # => 642
