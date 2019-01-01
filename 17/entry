@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require_relative 'map'
-map = Map.from_io $stdin, xstart: 500, ystart: 0
+map = Map.from_clay_veins $stdin, xstart: 500, ystart: 0
 
 map.fill
 

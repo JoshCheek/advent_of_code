@@ -1,5 +1,5 @@
 class Map
-  def self.from_io(io, xstart:, ystart:)
+  def self.from_clay_veins(io, xstart:, ystart:)
     map = Hash.new ?.
     map[[xstart, ystart]] = ?+
 
@@ -23,6 +23,7 @@ class Map
     xmin, xmax = map.keys.map(&:first).minmax
     xmin -= 1
     xmax += 1
+
     new map: map, xmin: xmin, xmax: xmax, ymin: ymin, ymax: ymax, xstart: xstart, ystart: ystart
   end
 
