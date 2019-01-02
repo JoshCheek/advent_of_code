@@ -1,14 +1,19 @@
 #!/usr/bin/env ruby
 require_relative 'map'
 map = Map.from_clay_veins $stdin, xstart: 500, ystart: 0
-map.fill
 
 require "io/console"
 $stdin.reopen "/dev/tty"
 height, width = $stdin.winsize
 
 if map.width < width || map.height < height
-  puts map
+  map.fill do
+    print "\e[H\e[2J"
+    puts map
+    case $stdin.getch
+    when ?\C-c, ?\C-d, ?q, ?\e then break
+    end
+  end
 else
   begin
     x, y = 500 - width/2, 0

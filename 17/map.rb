@@ -71,12 +71,16 @@ class Map
     }.join("\n")
   end
 
-  def fill
-    faucet xstart, ystart, :up
+  def fill(&block)
+    Enumerator.new do |y|
+      faucet(xstart, ystart, :up) { y << nil }
+    end.each(&block||->{})
   end
 
-  def faucet(x, y, from)
+  def faucet(x, y, from, &block)
     return true if x > xmax || y > ymax || x < xmin || y < ymin
+    block&.call
+    is_well = map[[x, y]] == WELL
 
     case map[[x, y]]
     when CLAY
@@ -84,37 +88,39 @@ class Map
     when FLOWING
       true
     when SAND, WELL
-      map[[x, y]] = FLOWING unless map[[x, y]] == WELL
+      map[[x, y]] = FLOWING
       case from
       when :up
-        if faucet(x, y+1, :up)
+        if faucet(x, y+1, :up, &block)
           true
-        elsif faucet(x-1, y, :right) | faucet(x+1, y, :left)
+        elsif faucet(x-1, y, :right, &block) | faucet(x+1, y, :left, &block)
           true
         else
-          map[[x, y]] = SETTLED unless map[[x, y]] == WELL
+          map[[x, y]] = SETTLED
           false
         end
       when :right
-        if faucet(x, y+1, :up)
+        if faucet(x, y+1, :up, &block)
           true
-        elsif faucet(x-1, y, :right)
+        elsif faucet(x-1, y, :right, &block)
           true
         else
-          map[[x, y]] = SETTLED unless map[[x, y]] == WELL
+          map[[x, y]] = SETTLED
           false
         end
       when :left
-        if faucet(x, y+1, :up)
+        if faucet(x, y+1, :up, &block)
           true
-        elsif faucet(x+1, y, :left)
+        elsif faucet(x+1, y, :left, &block)
           true
         else
-          map[[x, y]] = SETTLED unless map[[x, y]] == WELL
+          map[[x, y]] = SETTLED
           false
         end
       end
     end
+  ensure
+    map[[x, y]] = WELL if is_well
   end
 
 end
