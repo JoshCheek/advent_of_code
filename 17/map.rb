@@ -1,7 +1,13 @@
 class Map
+  SAND    = " "
+  SETTLED = "~"
+  FLOWING = "|"
+  CLAY    = "#"
+  WELL    = "+"
+
   def self.from_clay_veins(io, xstart:, ystart:)
-    map = Hash.new ?.
-    map[[xstart, ystart]] = ?+
+    map = Hash.new SAND
+    map[[xstart, ystart]] = WELL
 
     while line = io.gets
       xs, ys = line.scan(/(\w+)=(\d+(?:..\d+)?)/).map { |coord, values|
@@ -16,7 +22,7 @@ class Map
       ys.map! &:last
       xs << xs.last while xs.size < ys.size
       ys << ys.last while ys.size < xs.size
-      xs.zip(ys).each { |x, y| map[[x, y]] = '#' }
+      xs.zip(ys).each { |x, y| map[[x, y]] = CLAY }
     end
 
     ymin, ymax = map.keys.map(&:last).minmax
@@ -38,18 +44,30 @@ class Map
   def sum
     (ymin..ymax).sum do |y|
       (xmin..xmax).count do |x|
-        map[[x, y]] == ?~ || map[[x, y]] == ?|
+        map[[x, y]] == SETTLED || map[[x, y]] == FLOWING
       end
     end
   end
 
   def big?
-    xmax - xmin >= 20 || ymax - ymin >= 20
+    width >= 40 || height >= 40
+  end
+
+  def width
+    xmax - xmin
+  end
+
+  def height
+    ymax - ymin
   end
 
   def to_s
-    (ymin..ymax).map { |y|
-      (xmin..xmax).map { |x| map[[x, y]] }.join
+    show x: xmin, y: ymin, width: width, height: height
+  end
+
+  def show(x:, y:, width:, height:)
+    (y..y+height-1).map { |crnt_y|
+      (x..x+width-1).map { |crnt_x| map[[crnt_x, crnt_y]] }.join
     }.join("\n")
   end
 
@@ -61,12 +79,10 @@ class Map
     return true if x > xmax || y > ymax || x < xmin || y < ymin
 
     case map[[x, y]]
-    when ?#
+    when CLAY
       false
-    when ?+
-      faucet x, y+1, :up
-    when ?.
-      map[[x, y]] = ?|
+    when SAND, WELL
+      map[[x, y]] = FLOWING unless map[[x, y]] == WELL
       case from
       when :up
         if faucet(x, y+1, :up)
@@ -74,7 +90,7 @@ class Map
         elsif faucet(x-1, y, :right) | faucet(x+1, y, :left)
           true
         else
-          map[[x, y]] = ?~
+          map[[x, y]] = SETTLED unless map[[x, y]] == WELL
           false
         end
       when :right
@@ -83,7 +99,7 @@ class Map
         elsif faucet(x-1, y, :right)
           true
         else
-          map[[x, y]] = ?~
+          map[[x, y]] = SETTLED unless map[[x, y]] == WELL
           false
         end
       when :left
@@ -92,7 +108,7 @@ class Map
         elsif faucet(x+1, y, :left)
           true
         else
-          map[[x, y]] = ?~
+          map[[x, y]] = SETTLED unless map[[x, y]] == WELL
           false
         end
       end

@@ -3,6 +3,27 @@ require_relative 'map'
 map = Map.from_clay_veins $stdin, xstart: 500, ystart: 0
 
 map.fill
-
-puts map unless map.big?
+begin
+  require "io/console"
+  $stdin.reopen "/dev/tty"
+  height, width = $stdin.winsize
+  x, y = 500 - width/2, 0
+  loop do
+    print map.show(x: x, y: y, width: width, height: height)
+    case $stdin.getch
+    when ?\C-c, ?\C-d, ?q, ?\e
+      break
+    when ?h
+      x -= 5
+    when ?j
+      y += 2
+    when ?k
+      y -= 2
+    when ?l
+      x += 5
+    end
+  end
+rescue
+  p $!
+end
 p map.sum # => 57
