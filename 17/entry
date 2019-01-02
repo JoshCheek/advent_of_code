@@ -6,30 +6,38 @@ require "io/console"
 $stdin.reopen "/dev/tty"
 height, width = $stdin.winsize
 
-if map.width < width || map.height < height
-  map.fill do
-    print "\e[H\e[2J"
-    puts map
-    case $stdin.getch
-    when ?\C-c, ?\C-d, ?q, ?\e then break
-    end
-  end
-else
-  begin
-    x, y = 500 - width/2, 0
-    loop do
-      print map.show(x: x, y: y, width: width, height: height)
+if map.width < width && map.height < height
+  if ARGV.include? "-a"
+    animation = proc do
+      print "\e[H\e[2J"
+      puts map
       case $stdin.getch
       when ?\C-c, ?\C-d, ?q, ?\e then break
-      when ?h then x -= 5
-      when ?j then y += 2
-      when ?k then y -= 2
-      when ?l then x += 5
       end
     end
-  rescue
-    p $!
+  else
+    animation = proc {}
   end
+  map.fill &animation
+  puts map
+else
+  map.fill
+  puts map
+  # begin
+  #   x, y = 500 - width/2, 0
+  #   loop do
+  #     print map.show(x: x, y: y, width: width, height: height)
+  #     case $stdin.getch
+  #     when ?\C-c, ?\C-d, ?q, ?\e then break
+  #     when ?h then x -= 5
+  #     when ?j then y += 2
+  #     when ?k then y -= 2
+  #     when ?l then x += 5
+  #     end
+  #   end
+  # rescue
+  #   p $!
+  # end
 end
 
 p map.sum # => 57

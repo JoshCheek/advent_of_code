@@ -74,7 +74,7 @@ class Map
   def fill(&block)
     Enumerator.new do |y|
       faucet(xstart, ystart, :up) { y << nil }
-    end.each(&block||->{})
+    end.each &(block||:itself)
   end
 
   def faucet(x, y, from, &block)
@@ -96,7 +96,12 @@ class Map
         elsif faucet(x-1, y, :right, &block) | faucet(x+1, y, :left, &block)
           true
         else
-          map[[x, y]] = SETTLED
+          x -= 1 while map[[x, y]] == FLOWING
+          x += 1
+          while map[[x, y]] == FLOWING
+            map[[x, y]] = SETTLED
+            x += 1
+          end
           false
         end
       when :right
@@ -105,7 +110,6 @@ class Map
         elsif faucet(x-1, y, :right, &block)
           true
         else
-          map[[x, y]] = SETTLED
           false
         end
       when :left
@@ -114,7 +118,6 @@ class Map
         elsif faucet(x+1, y, :left, &block)
           true
         else
-          map[[x, y]] = SETTLED
           false
         end
       end
