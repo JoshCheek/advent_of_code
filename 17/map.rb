@@ -54,11 +54,11 @@ class Map
   end
 
   def width
-    xmax - xmin
+    xmax - xmin + 1
   end
 
   def height
-    ymax - ymin
+    ymax - ymin + 1
   end
 
   def to_s
@@ -81,6 +81,8 @@ class Map
     case map[[x, y]]
     when CLAY
       false
+    when FLOWING
+      true
     when SAND, WELL
       map[[x, y]] = FLOWING unless map[[x, y]] == WELL
       case from
