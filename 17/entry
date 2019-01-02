@@ -1,4 +1,8 @@
 #!/usr/bin/env ruby
+animate  = ARGV.include? "-a"
+navigate = ARGV.include? "-n" # vim keybindings
+
+
 require_relative 'map'
 map = Map.from_clay_veins $stdin, xstart: 500, ystart: 0
 
@@ -7,7 +11,7 @@ $stdin.reopen "/dev/tty"
 height, width = $stdin.winsize
 
 if map.width < width && map.height < height
-  if ARGV.include? "-a"
+  if animate
     animation = proc do
       print "\e[H\e[2J"
       puts map
@@ -22,22 +26,25 @@ if map.width < width && map.height < height
   puts map
 else
   map.fill
-  puts map
-  # begin
-  #   x, y = 500 - width/2, 0
-  #   loop do
-  #     print map.show(x: x, y: y, width: width, height: height)
-  #     case $stdin.getch
-  #     when ?\C-c, ?\C-d, ?q, ?\e then break
-  #     when ?h then x -= 5
-  #     when ?j then y += 2
-  #     when ?k then y -= 2
-  #     when ?l then x += 5
-  #     end
-  #   end
-  # rescue
-  #   p $!
-  # end
+  if navigate
+    begin
+      x, y = 500 - width/2, 0
+      loop do
+        print map.show(x: x, y: y, width: width, height: height)
+        case $stdin.getch
+        when ?\C-c, ?\C-d, ?q, ?\e then break
+        when ?h then x -= 5
+        when ?j then y += 2
+        when ?k then y -= 2
+        when ?l then x += 5
+        end
+      end
+    rescue
+      p $!
+    end
+  else
+    puts map
+  end
 end
 
 p map.sum # => 57
