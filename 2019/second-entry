@@ -1,6 +1,4 @@
-#!/usr/bin/env ruby -n
-BEGIN { sum = 0 }
-END { p sum }
-masses = [$_.to_i/3-2]
-masses << masses.last/3-2 until masses.last <= 0
-sum += masses[0...-1].sum
+#!/usr/bin/env awk -f
+{ sum -= $1
+  for(mass = $1; 0 < mass; mass = int(mass/3)-2) sum += mass
+} END { print sum }
