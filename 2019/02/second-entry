@@ -7,12 +7,10 @@ def calculate(opcodes)
     case opcode
     when 1  then opcodes[to] = opcodes[from1] + opcodes[from2]
     when 2  then opcodes[to] = opcodes[from1] * opcodes[from2]
-    when 99 then break
+    when 99 then return opcodes[0]
     else return nil
     end
   end
-
-  opcodes[0]
 end
 
 100.times do |noun|
@@ -24,4 +22,3 @@ end
     exit
   end
 end
-
