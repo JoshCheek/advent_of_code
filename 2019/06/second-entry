@@ -1,28 +1,24 @@
 #!/usr/bin/env ruby
 
 require 'set'
-def path(edges:, from:, to:)
-  queue = [[from]]
-  visited = Set.new
-  while queue.any?
-    path    = queue.shift
-    current = path.last
-    return path if current == to
-    visited << current
-    edges[current].each do |adjacent|
-      next if visited.include? adjacent
-      queue << [*path, adjacent]
-    end
+
+def path(edges:, from:, to:, queue: [[from]], visited: Set.new)
+  path    = queue.shift
+  current = path.last
+  return path if current == to
+  visited << current
+  edges[current].each do |adjacent|
+    next if visited.include? adjacent
+    queue << [*path, adjacent]
   end
-  raise "Could not find #{to.inspect} in #{edges.inspect}"
+  path edges: edges, from: from, to: to, queue: queue, visited: visited
 end
 
-edges = $stdin.readlines.map { |line| line.chomp.split ")" }
-  .each_with_object(
-    Hash.new { |h, k| h[k] = [] }
-  ) { |(l, r), edges|
-    edges[l] << r
-    edges[r] << l
-  }
+edges = Hash.new { |h, k| h[k] = [] }
+
+$stdin.readlines.map { |line| line.chomp.split ")" }.each do |l, r|
+  edges[l] << r
+  edges[r] << l
+end
 
 p path(edges: edges, from: "YOU", to: "SAN").size - 3
