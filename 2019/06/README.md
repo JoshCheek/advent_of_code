@@ -1,4 +1,4 @@
-https://adventofcode.com/2019/day/6#part2
+https://adventofcode.com/2019/day/6
 
 ```sh
 $ ./first-entry  < input.txt
