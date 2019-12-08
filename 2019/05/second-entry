@@ -41,10 +41,10 @@ class Intcode
         self.ip += 2
 
       when :jump_if_true
-        if !param(1).zero?
-          self.ip = param 2
-        else
+        if param(1).zero?
           self.ip += 3
+        else
+          self.ip = param 2
         end
 
       when :jump_if_false
