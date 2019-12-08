@@ -14,78 +14,52 @@ class Intcode
     self.ip        = 0
   end
 
+  def param(n, mode: true)
+    value = memory[ip+n]
+    value = memory[value] if mode && position_mode?(n)
+    value
+  end
+
   def call
     loop do
       case opcode
       when :add
-        addresses = []
-        left  = memory[ip+1]
-        right = memory[ip+2]
-        to    = memory[ip+3]
-        left  = memory[left]  if position_mode? 1
-        right = memory[right] if position_mode? 2
-        memory[to] = left + right
+        memory[param(3, mode: false)] = param(1) + param(2)
         self.ip += 4
 
       when :multiply
-        left  = memory[ip+1]
-        right = memory[ip+2]
-        to    = memory[ip+3]
-        left  = memory[left]  if position_mode? 1
-        right = memory[right] if position_mode? 2
-        memory[to] = left * right
+        memory[param(3, mode: false)] = param(1) * param(2)
         self.ip += 4
 
       when :input
-        address = memory[ip+1]
         print '> '
-        memory[address] = instream.gets.to_i
+        memory[param(1, mode: false)] = instream.gets.to_i
         self.ip += 2
 
       when :output
-        value = memory[ip+1]
-        value = memory[value]
-        outstream.puts value
+        outstream.puts param(1)
         self.ip += 2
 
       when :jump_if_true
-        condition = memory[ip+1]
-        address   = memory[ip+2]
-        condition = memory[condition] if position_mode? 1
-        address   = memory[address]   if position_mode? 2
-        if !condition.zero?
-          self.ip = address
+        if !param(1).zero?
+          self.ip = param 2
         else
           self.ip += 3
         end
 
       when :jump_if_false
-        condition = memory[ip+1]
-        address   = memory[ip+2]
-        condition = memory[condition] if position_mode? 1
-        address   = memory[address]   if position_mode? 2
-        if condition.zero?
-          self.ip = address
+        if param(1).zero?
+          self.ip = param 2
         else
           self.ip += 3
         end
 
       when :less_than
-        lhs = memory[ip+1]
-        rhs = memory[ip+2]
-        to  = memory[ip+3]
-        lhs = memory[lhs] if position_mode? 1
-        rhs = memory[rhs] if position_mode? 2
-        memory[to] = (lhs < rhs ? 1 : 0)
+        memory[param(3, mode: false)] = (param(1) < param(2) ? 1 : 0)
         self.ip += 4
 
       when :equal_to
-        lhs = memory[ip+1]
-        rhs = memory[ip+2]
-        to  = memory[ip+3]
-        lhs = memory[lhs] if position_mode? 1
-        rhs = memory[rhs] if position_mode? 2
-        memory[to] = (lhs == rhs ? 1 : 0)
+        memory[param(3, mode: false)] = (param(1) == param(2) ? 1 : 0)
         self.ip += 4
 
       when :halt
