@@ -5,42 +5,6 @@ def position_mode?(instruction, param)
   (mode_num || 0) == 0
 end
 
-require 'io/console'
-require 'coderay'
-
-def pp(obj)
-  inspected = CodeRay.encode obj.inspect, :ruby, :terminal
-  puts inspected
-end
-
-def show_board(memory:, ip:, opcode:, addresses: [], first: true, **others)
-  rows = memory.each_slice(30).map(&:to_a)
-  rows.last << '' until rows.last.size == rows.first.size
-  widths = rows.transpose.map { |col| col.map(&:to_s).map(&:size).max }
-  instr = 0
-  puts '------------------------------' if first
-  rows.each do |row|
-    format = "\e[44;37m %3d \e[0m " << widths.take(row.size).map.with_index { |w, i|
-      i += instr
-      if i == ip
-        "\e[45;37m%#{w}s\e[0m"
-      elsif addresses.any? { |addr| addr == i }
-        "\e[46;37m%#{w}s\e[0m"
-      else
-        "%#{w}s"
-      end
-    }.join(" ") << "\n"
-    printf format, instr, *row
-    instr += row.size
-  end
-  pp ip: ip, opcode: opcode, **others
-  if block_given?
-    yield
-    show_board memory: memory, ip: ip, opcode: opcode, addresses: addresses, first: false, **others
-    # gets
-    print "\e[H\e[2J"
-  end
-end
 
 def calculate(memory)
   ip = 0
@@ -54,138 +18,73 @@ def calculate(memory)
       left  = memory[ip+1]
       right = memory[ip+2]
       to    = memory[ip+3]
-      addresses << to
-      if position_mode? instruction, 1
-        addresses << left
-        left  = memory[left]
-      end
-      if position_mode? instruction, 2
-        addresses << right
-        right = memory[right]
-      end
-      show_board memory: memory, ip: ip, opcode: opcode, left: left, right: right, to: to, addresses: addresses do
-        memory[to] = left + right
-      end
+      left  = memory[left]  if position_mode? instruction, 1
+      right = memory[right] if position_mode? instruction, 2
+      memory[to] = left + right
       ip += 4
 
     when 2
-      addresses = []
       left  = memory[ip+1]
       right = memory[ip+2]
       to    = memory[ip+3]
-      addresses << to
-      if position_mode? instruction, 1
-        addresses << left
-        left  = memory[left]
-      end
-      if position_mode? instruction, 2
-        addresses << right
-        right = memory[right]
-      end
-      show_board memory: memory, ip: ip, opcode: opcode, left: left, right: right, to: to, addresses: addresses do
-        memory[to] = left * right
-      end
+      left  = memory[left]  if position_mode? instruction, 1
+      right = memory[right] if position_mode? instruction, 2
+      memory[to] = left * right
       ip += 4
 
     when 3
       address = memory[ip+1]
-      show_board memory: memory, ip: ip, opcode: opcode, address: address, addresses: [address] do
-        print '> '
-        memory[address] = gets.to_i # ??
-      end
+      print '> '
+      memory[address] = gets.to_i
       ip += 2
 
     when 4
       value = memory[ip+1]
-      addresses = []
-      if position_mode? instruction, 1
-        addresses << value
-        value = memory[value]
-      end
-      show_board memory: memory, ip: ip, opcode: opcode, value: value, addresses: addresses do
-        puts value
-      end
+      value = memory[value]
+      puts value
       ip += 2
 
     when 5
       condition = memory[ip+1]
       address   = memory[ip+2]
-      addresses = []
-      if position_mode? instruction, 1
-        addresses << condition
-        condition = memory[condition]
-      end
-      if position_mode? instruction, 2
-        addresses << address
-        address   = memory[address]
-      end
-      show_board memory: memory, ip: ip, opcode: opcode, condition: condition, address: address, addresses: addresses
+      condition = memory[condition] if position_mode? instruction, 1
+      address   = memory[address]   if position_mode? instruction, 2
       if !condition.zero?
         ip = address
       else
         ip += 3
       end
-      show_board memory: memory, ip: ip, opcode: opcode, condition: condition, address: address, addresses: addresses, first: false
-
 
     when 6
       condition = memory[ip+1]
       address   = memory[ip+2]
-      addresses = []
-      if position_mode? instruction, 1
-        addresses << condition
-        condition = memory[condition]
-      end
-      if position_mode? instruction, 2
-        addresses << address
-        address   = memory[address]
-      end
-      show_board memory: memory, ip: ip, opcode: opcode, condition: condition, address: address, addresses: addresses
+      condition = memory[condition] if position_mode? instruction, 1
+      address   = memory[address]   if position_mode? instruction, 2
       if condition.zero?
         ip = address
       else
         ip += 3
       end
-      show_board memory: memory, ip: ip, opcode: opcode, condition: condition, address: address, addresses: addresses, first: false
 
     when 7
       lhs = memory[ip+1]
       rhs = memory[ip+2]
       to  = memory[ip+3]
-      addresses = [to]
-      if position_mode? instruction, 1
-        addresses << lhs
-        lhs = memory[lhs]
-      end
-      if position_mode? instruction, 2
-        addresses << rhs
-        rhs = memory[rhs]
-      end
-      show_board memory: memory, ip: ip, opcode: opcode, lhs: lhs, rhs: rhs, addresses: addresses do
-        memory[to] = (lhs < rhs ? 1 : 0)
-      end
+      lhs = memory[lhs] if position_mode? instruction, 1
+      rhs = memory[rhs] if position_mode? instruction, 2
+      memory[to] = (lhs < rhs ? 1 : 0)
       ip += 4
 
     when 8
       lhs = memory[ip+1]
       rhs = memory[ip+2]
       to  = memory[ip+3]
-      addresses = [to]
-      if position_mode? instruction, 1
-        addresses << lhs
-        lhs = memory[lhs]
-      end
-      if position_mode? instruction, 2
-        addresses << rhs
-        rhs = memory[rhs]
-      end
-      show_board memory: memory, ip: ip, opcode: opcode, lhs: lhs, rhs: rhs, addresses: addresses do
-        memory[to] = (lhs == rhs ? 1 : 0)
-      end
+      lhs = memory[lhs] if position_mode? instruction, 1
+      rhs = memory[rhs] if position_mode? instruction, 2
+      memory[to] = (lhs == rhs ? 1 : 0)
       ip += 4
 
     when 99
-      show_board memory: memory, ip: ip, opcode: opcode
       return memory[0]
     else return nil
     end
