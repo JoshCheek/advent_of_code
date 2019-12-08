@@ -17,7 +17,7 @@ class Intcode
   def call
     loop do
       case opcode
-      when 1
+      when :add
         addresses = []
         left  = memory[ip+1]
         right = memory[ip+2]
@@ -27,7 +27,7 @@ class Intcode
         memory[to] = left + right
         self.ip += 4
 
-      when 2
+      when :multiply
         left  = memory[ip+1]
         right = memory[ip+2]
         to    = memory[ip+3]
@@ -36,19 +36,19 @@ class Intcode
         memory[to] = left * right
         self.ip += 4
 
-      when 3
+      when :input
         address = memory[ip+1]
         print '> '
         memory[address] = instream.gets.to_i
         self.ip += 2
 
-      when 4
+      when :output
         value = memory[ip+1]
         value = memory[value]
         outstream.puts value
         self.ip += 2
 
-      when 5
+      when :jump_if_true
         condition = memory[ip+1]
         address   = memory[ip+2]
         condition = memory[condition] if position_mode? 1
@@ -59,7 +59,7 @@ class Intcode
           self.ip += 3
         end
 
-      when 6
+      when :jump_if_false
         condition = memory[ip+1]
         address   = memory[ip+2]
         condition = memory[condition] if position_mode? 1
@@ -70,7 +70,7 @@ class Intcode
           self.ip += 3
         end
 
-      when 7
+      when :less_than
         lhs = memory[ip+1]
         rhs = memory[ip+2]
         to  = memory[ip+3]
@@ -79,7 +79,7 @@ class Intcode
         memory[to] = (lhs < rhs ? 1 : 0)
         self.ip += 4
 
-      when 8
+      when :equal_to
         lhs = memory[ip+1]
         rhs = memory[ip+2]
         to  = memory[ip+3]
@@ -88,7 +88,7 @@ class Intcode
         memory[to] = (lhs == rhs ? 1 : 0)
         self.ip += 4
 
-      when 99
+      when :halt
         return memory[0]
 
       else
@@ -104,7 +104,17 @@ class Intcode
   end
 
   def opcode
-    instruction % 100
+    case instruction % 100
+    when 1  then :add
+    when 2  then :multiply
+    when 3  then :input
+    when 4  then :output
+    when 5  then :jump_if_true
+    when 6  then :jump_if_false
+    when 7  then :less_than
+    when 8  then :equal_to
+    when 99 then :halt
+    end
   end
 
   def position_mode?(param)
