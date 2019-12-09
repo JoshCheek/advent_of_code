@@ -13,59 +13,66 @@ class Intcode
     self.bp        = 0 # base pointer
   end
 
-  def param(n, deref=true)
-    value = memory[ip+n]
-    case mode_at n
-    when :position  then deref ? memory[value] : value
-    when :immediate then value
-    when :relative  then deref ? memory[bp+value] : bp+value
+  def get(param)
+    n = memory[ip+param]
+    case mode_at param
+    when :position  then memory[n]
+    when :immediate then n
+    when :relative  then memory[bp+n]
     end
+  end
+
+  def set(param, value)
+    n = memory[ip+param]
+    n += bp if :relative == mode_at(param)
+    memory[n] = value
   end
 
   def call
     loop do
       case opcode
+
       when :add
-        memory[param(3, false)] = param(1) + param(2)
+        set 3, get(1) + get(2)
         self.ip += 4
 
       when :multiply
-        memory[param(3, false)] = param(1) * param(2)
+        set 3, get(1) * get(2)
         self.ip += 4
 
       when :input
-        print '> '
-        memory[param(1, false)] = instream.gets.to_i
+        outstream.print '> ' if outstream.tty?
+        set 1, instream.gets.to_i
         self.ip += 2
 
       when :output
-        outstream.puts param(1)
+        outstream.puts get(1)
         self.ip += 2
 
       when :jump_if_true
-        if param(1).zero?
+        if get(1).zero?
           self.ip += 3
         else
-          self.ip = param 2
+          self.ip = get 2
         end
 
       when :jump_if_false
-        if param(1).zero?
-          self.ip = param 2
+        if get(1).zero?
+          self.ip = get 2
         else
           self.ip += 3
         end
 
       when :less_than
-        memory[param(3, false)] = (param(1) < param(2) ? 1 : 0)
+        set 3, get(1) < get(2) ? 1 : 0
         self.ip += 4
 
       when :equal_to
-        memory[param(3, false)] = (param(1) == param(2) ? 1 : 0)
+        set 3, get(1) == get(2) ? 1 : 0
         self.ip += 4
 
       when :relative_base_offset
-        self.bp += param(1)
+        self.bp += get(1)
         self.ip += 2
 
       when :halt
