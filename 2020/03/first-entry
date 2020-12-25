@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+p $stdin
+  .readlines
+  .map(&:chomp)
+  .each_with_index
+  .count { |line, i| line[i*3%line.size] == '#' }

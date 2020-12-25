@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+forest = $stdin.readlines chomp: true
+slopes = [[1, 1], [3, 1], [5, 1], [7, 1], [1, 2]]
+counts = slopes.map do |dx, dy|
+  forest.each_slice(dy)
+        .with_index
+        .count { |(line), i| line[i*dx % line.size] == '#' }
+end
+puts counts.reduce(1, :*)
