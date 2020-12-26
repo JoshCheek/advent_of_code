@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+$stdin
+  .read
+  .tr!("FBLR", "0101")
+  .lines
+  .map { |s| s.to_i(2) }
+  .sort
+  .each_cons(2) { |l, r| puts l+1 if l+1 != r }

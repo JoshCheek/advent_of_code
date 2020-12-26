@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+p $stdin
+  .read
+  .tr!("FBLR", "0101")
+  .lines
+  .max
+  .to_i(2)
