@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+N, E, S, W  = 1i, 1, -1i, -1
+waypoint, position = 10+1i, 0
+
+$stdin.each_line do |line|
+  /(?<action>.)(?<n>.*)/ =~ line
+  n = n.to_i
+  case action
+  when ?N then waypoint += n*N
+  when ?E then waypoint += n*E
+  when ?S then waypoint += n*S
+  when ?W then waypoint += n*W
+  when ?L then waypoint *= (1i)**(n/90)
+  when ?R then waypoint *= (-1i)**(n/90)
+  when ?F then position += n*waypoint
+  end
+end
+
+p position.rect.map(&:abs).sum

@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+E, S, W, N = DIRECTIONS = [[1,0], [0,-1], [-1,0], [0,1]]
+
+position = [0,0]
+def position.move(n, (dx, dy))
+  self[0] += n*dx
+  self[1] += n*dy
+  self
+end
+
+$stdin.each_line do |line|
+  /(?<action>.)(?<n>.*)/ =~ line
+  n = n.to_i
+  case action
+  when ?N then position.move n, N
+  when ?E then position.move n, E
+  when ?S then position.move n, S
+  when ?W then position.move n, W
+  when ?L then DIRECTIONS.rotate! -n/90
+  when ?R then DIRECTIONS.rotate! n/90
+  when ?F then position.move n, DIRECTIONS[0]
+  else raise "WTF: #{action.inspect}"
+  end
+end
+
+p position.map(&:abs).sum
