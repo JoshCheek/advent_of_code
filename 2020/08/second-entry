@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+def simulate(instructions)
+  acc, ip, visited = 0, 0, {}
+  loop do
+    return acc, false if visited[ip]
+    return acc, true  unless instructions[ip]
+    visited[ip] = true
+    instruction, arg = instructions[ip]
+    case instruction
+    when :nop then ip += 1
+    when :acc then ip += 1; acc += arg.to_i
+    when :jmp then ip += arg.to_i
+    end
+  end
+end
+
+instructions = $stdin.each_line.map do |line|
+  instruction, arg = line.split
+  [instruction.intern, arg.to_i]
+end
+
+instructions.each_index do |i|
+  modified_instructions = instructions.map(&:dup)
+  case instructions[i][0]
+  when :nop then modified_instructions[i][0] = :jmp
+  when :jmp then modified_instructions[i][0] = :nop
+  else next
+  end
+  acc, success = simulate modified_instructions
+  next unless success
+  puts acc
+  break
+end

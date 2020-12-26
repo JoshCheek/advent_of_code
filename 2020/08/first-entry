@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+acc, ip, visited = 0, 0, {}
+
+instructions = $stdin.each_line.map do |line|
+  instruction, arg = line.split
+  [instruction.intern, arg.to_i]
+end
+
+until visited[ip]
+  visited[ip] = true
+  instruction, arg = instructions[ip]
+  case instruction
+  when :nop then ip += 1
+  when :acc then ip += 1; acc += arg.to_i
+  when :jmp then ip += arg.to_i
+  end
+end
+
+puts acc
