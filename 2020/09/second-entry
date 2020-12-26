@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+previous = 25.times.map { gets.to_i }
+all = previous.dup
+
+target = $stdin.each_line do |line|
+  n = line.to_i
+  break n unless previous.combination(2).any? { |a, b| a + b == n }
+  previous.shift
+  previous << n
+  all << n
+end
+
+sequences = []
+all.find { |n|
+  sequences.each { |seq| seq[:count] += n }
+  sequences.each { |seq| seq[:seq] << n }
+  sequences << { count: n, seq: [n] }
+  sequences.reject! { |seq| target < seq[:count] }
+  match = sequences.find { |seq| seq[:count] == target }
+  p match[:seq].minmax.sum if match
+}

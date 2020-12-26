@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+previous = 25.times.map { gets.to_i }
+$stdin.each_line do |line|
+  n = line.to_i
+  if previous.combination(2).any? { |a, b| a + b == n }
+    previous.shift
+    previous << n
+  else
+    puts n
+    break
+  end
+end
