@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+counts = Hash.new 0
+counts[0] = 1
+jolts = $stdin.readlines.map(&:to_i).sort
+jolts.each { |jolt| counts[jolt] = counts[jolt-1] + counts[jolt-2] + counts[jolt-3] }
+puts counts[jolts.last]

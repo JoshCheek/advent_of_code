@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+p [
+  0,
+  *(jolts = $stdin.readlines.map(&:to_i).sort),
+  3+jolts[-1],
+].each_cons(2)
+ .map { |i, o| o-i }
+ .tally
+ .values
+ .reduce(1, :*)
