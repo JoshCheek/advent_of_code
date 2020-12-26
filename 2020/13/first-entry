@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+start_time = gets.to_i
+p gets
+  .split(",")
+  .map(&:to_i)
+  .reject(&:zero?)
+  .map { |b| [b-start_time%b, b] }
+  .min
+  .reduce(1, :*)

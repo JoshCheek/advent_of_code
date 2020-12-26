@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+# Knew it was the Chinese Remainder Theorem b/c I remembered it from school,
+# but had to find a walkthrough to figure out how to actually do it:
+# https://www.youtube.com/watch?v=zIFehsBHB8o
+#
+# Plus, I solved `x` by using the "extended euclidean algorithm", which I
+# looked up and translated from TusharSabhani's C++ solution here:
+# https://www.geeksforgeeks.org/euclidean-algorithms-basic-and-extended/
+
+def gcd(a, b)
+  return b, 0, 1 if a == 0
+  gcd, x, y = gcd(b%a, a)
+  return gcd, y-(b/a)*x, x
+end
+
+gets
+busses = gets
+  .split(",")
+  .map(&:to_i)
+  .map
+  .with_index { |id, i| { b: (id-i)%id, n: id } if id > 0 }
+  .compact
+
+N = busses.reduce(1) { |product, n:, **| product*n }
+busses.each do |bus|
+  bus[:N] = N/bus[:n]
+  bus[:x] = gcd(bus[:N]%bus[:n], bus[:n])[1]
+end
+puts busses.sum { |bus| bus[:b]*bus[:N]*bus[:x] } % N
