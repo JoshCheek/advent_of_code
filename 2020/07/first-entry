@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+require 'set'
+
+def nestings(nesting, contained_by, &block)
+  return to_enum __method__, nesting, contained_by unless block
+  contained_by[nesting.last].each do |container|
+    nesting.push container
+    block.call nesting.dup
+    nestings nesting, contained_by, &block
+    nesting.pop
+  end
+end
+
+contained_by = Hash.new { |h, k| h[k] = Set.new }
+$stdin
+  .read
+  .gsub(/ bags contain /, "|")
+  .gsub(/ bags?, /, "|")
+  .gsub(/ bags?\.\s*$/, "")
+  .gsub("|no other", "")
+  .gsub(/\d+ /, "")
+  .gsub(/ +/, " ")
+  .each_line(chomp: true) { |l|
+    container, *containees = l.split "|"
+    containees.each { |containee| contained_by[containee] << container }
+  }
+
+p nestings(['shiny gold'], contained_by).map(&:last).uniq.size

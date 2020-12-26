@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+def bags_in(bag, bags)
+  bags[bag].sum { |n, bag| n + n * bags_in(bag, bags) }
+end
+
+puts bags_in(
+  'shiny gold',
+  $stdin
+    .read
+    .gsub(/ bags contain /, "|")
+    .gsub(/ bags?, /, "|")
+    .gsub(/ bags?\.\s*$/, "")
+    .gsub("|no other", "")
+    .gsub(/ +/, " ")
+    .each_line(chomp: true)
+    .map { |l|
+      container, *containees = l.split "|"
+      [ container,
+        containees
+        .map { |containee| containee.split " ", 2 }
+        .map { |n, containee| [n.to_i, containee] }
+      ]
+    }
+    .to_h
+)
