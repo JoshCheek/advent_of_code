@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+seen = Hash.new { |h, k| h[k] = [] }
+nums = gets.split(?,).map(&:to_i)
+nums.each_with_index { |n, i| seen[n] << i }
+last = nums.last
+
+(nums.size...30_000_000).each do |turn|
+  t1, t2 = seen[last].last(2)
+  last = t1 && t2 ? t2 - t1 : 0
+  seen[last].shift if 1 < seen[last].size
+  seen[last] << turn
+end
+
+p last
