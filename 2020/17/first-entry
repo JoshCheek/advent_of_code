@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+
+def neighbours_of((x,y,z), world)
+  coords = (-1..1).flat_map do |dz|
+    (-1..1).flat_map do |dy|
+      (-1..1).map { |dx| [x+dx,y+dy,z+dz] }
+    end
+  end
+  coords.delete [x,y,z]
+  coords
+end
+
+def relevant_cells(world)
+  Set.new world.to_a + world.flat_map { |cell| neighbours_of cell, world }
+end
+
+def cycle(world)
+  Set.new relevant_cells(world).select { |cell| alive_tomorrow? cell, world }
+end
+
+def alive_tomorrow?(cell, world)
+  count = neighbours_of(cell, world).count { |neighbour| world.include? neighbour }
+  count == 3 || (count == 2 && world.include?(cell))
+end
+
+
+require 'set'
+world = Set.new
+$stdin.each_line(chomp: true).with_index do |line, y|
+  line.each_char.with_index { |c, x| world << [x,y,0] if c == '#' }
+end
+
+6.times { world = cycle world }
+p world.size
