@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+p $stdin
+  .read
+  .split("\n\n")
+  .map { |inputs| inputs.gsub(/\s/, "").chars.uniq.size }
+  .sum
