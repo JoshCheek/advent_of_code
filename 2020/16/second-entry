@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+class Rule
+  attr_accessor :name, :ranges
+
+  def initialize(name, ranges)
+    self.name, self.ranges, @locked = name, ranges, false
+  end
+
+  def lock
+    @locked = true
+  end
+
+  def locked?
+    @locked
+  end
+
+  def cover?(num)
+    ranges.any? { |r| r.cover? num }
+  end
+
+  def inspect
+    "#<#{name} #{ranges.map(&:inspect).join(" | ")}>"
+  end
+end
+
+rules, my_ticket, nearby_tickets = $stdin.read.split("\n\n")
+
+rules = rules.lines.map do |line|
+  /([^:]+): (\d+)-(\d+) or (\d+)-(\d+)/ =~ line
+  raise line unless $1
+  Rule.new $1, [$2.to_i .. $3.to_i, $4.to_i .. $5.to_i]
+end
+
+my_ticket = my_ticket.lines.last.split(',').map(&:to_i)
+
+valid_tickets = nearby_tickets
+  .lines
+  .drop(1)
+  .map { |t| t.split(',').map(&:to_i) }
+  .reject { |nums|
+    nums.find { |num|
+      rules.none? { |rule| rule.cover? num }
+    }
+  }
+
+
+possibilities = valid_tickets.transpose.map { |columns|
+  rules.dup.select { |rule|
+    columns.all? { |num| rule.cover? num }
+  }
+}
+
+until possibilities.all?(&:one?)
+  pre_size = possibilities.flatten.size
+  possibilities.each { |rules| rules.one? ? rules.first.lock : rules.reject!(&:locked?) }
+  rules.reject(&:locked?).each { |rule|
+    groups = possibilities.select { |ps| ps.include? rule }
+    groups.first.replace [rule] if groups.one?
+  }
+end
+
+p possibilities
+  .map(&:first)
+  .zip(my_ticket)
+  .map { |rule, n| [rule.name, n] }
+  .select { |name, n| name.start_with? "departure" }
+  .map(&:last)
+  .reduce(1,:*)

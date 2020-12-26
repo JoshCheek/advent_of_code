@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+rules, _, nearby_tickets = $stdin.read.split("\n\n")
+rules = rules.lines.flat_map do |line|
+  /(\d+)-(\d+) or (\d+)-(\d+)/ =~ line
+  raise line unless $1
+  [$1.to_i .. $2.to_i, $3.to_i .. $4.to_i]
+end
+p nearby_tickets
+  .lines
+  .drop(1)
+  .map { |t| t.split(',').map(&:to_i) }
+  .map { |nums|
+    nums.find { |num|
+      rules.none? { |range| range.cover? num }
+    }
+  }
+  .compact
+  .sum
