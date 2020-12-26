@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+p $stdin
+  .read.split("\n\n")
+  .map { |doc| %w[byr iyr eyr hgt hcl ecl pid] - doc.scan(/\b\w+?(?=:\S)/) }
+  .count(&:empty?)
