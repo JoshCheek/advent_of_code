@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+FLOOR, EMPTY, OCCUPIED, WALL = '.', 'L', '#', 'X'
+
+def find_neighbours((x, y), seats)
+  [[-1, -1], [0, -1], [1, -1],
+   [-1,  0],          [1,  0],
+   [-1,  1], [0,  1], [1,  1],
+  ].map do |dx, dy|
+    potential = [x, y]
+    loop do
+      potential[0] += dx
+      potential[1] += dy
+      break potential if seats[potential] == EMPTY
+      break nil if seats[potential] == WALL
+    end
+  end.compact
+end
+
+seats = Hash.new WALL
+$stdin.readlines(chomp: true).each_with_index do |line, y|
+  line.each_char.with_index { |c, x| seats[[x,y]] = c }
+end
+
+neighbor_locations = seats.keys.map { |seat| [seat, find_neighbours(seat, seats)] }.to_h
+
+loop do
+  new_seats = seats.map { |cell, state|
+    count = neighbor_locations[cell].count { |neighbour| seats[neighbour] == OCCUPIED }
+    case state
+    when FLOOR
+      [cell, state]
+    when EMPTY
+      if count.zero?
+        [cell, OCCUPIED]
+      else
+        [cell, state]
+      end
+    when OCCUPIED
+      if 5 <= count
+        [cell, EMPTY]
+      else
+        [cell, state]
+      end
+    end
+  }.to_h
+  break if new_seats == seats
+  seats = new_seats
+end
+
+puts seats.values.count { |s| s == OCCUPIED }

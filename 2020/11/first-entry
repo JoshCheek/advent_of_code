@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+FLOOR, EMPTY, OCCUPIED = '.', 'L', '#'
+seats = Hash.new
+$stdin.readlines(chomp: true).each_with_index do |line, y|
+  line.each_char.with_index { |c, x| seats[[x,y]] = c }
+end
+
+loop do
+  new_seats = seats.map { |(x, y), state|
+    adjacents = [
+      seats[[x-1,y-1]], seats[[x,y-1]], seats[[x+1,y-1]],
+      seats[[x-1,y  ]],                 seats[[x+1,y  ]],
+      seats[[x-1,y+1]], seats[[x,y+1]], seats[[x+1,y+1]],
+    ]
+    count = adjacents.count { |a| a == OCCUPIED }
+    case state
+    when FLOOR
+      [[x,y], state]
+    when EMPTY
+      if count.zero?
+        [[x,y], OCCUPIED]
+      else
+        [[x,y], state]
+      end
+    when OCCUPIED
+      if 4 <= count
+        [[x,y], EMPTY]
+      else
+        [[x,y], state]
+      end
+    end
+  }.to_h
+  break if new_seats == seats
+  seats = new_seats
+end
+
+puts seats.values.count { |s| s == OCCUPIED }
