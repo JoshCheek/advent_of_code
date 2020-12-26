@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+p $stdin
+  .each_line
+  .with_object([?X]*36)
+  .with_object(Hash.new(0)) { |(line, mask), memory|
+    case line
+    when /^mask = ([X10]{36})$/
+      mask.replace $1.chars
+    when /^mem\[(\d+)\] = (\d+)$/
+      memory[$1.to_i] =
+        sprintf("%036b\n", $2.to_i)
+        .chars
+        .zip(mask)
+        .map { |n, m| m == ?X ? n : m }
+        .join
+        .to_i(2)
+    end
+  }
+  .values
+  .sum

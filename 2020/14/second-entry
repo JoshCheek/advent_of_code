@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+p ARGF
+  .each_line
+  .with_object([?0]*36)
+  .with_object({}) { |(line, mask), memory|
+    case line
+    when /^mask = ([X10]{36})$/
+      mask.replace $1.chars
+    when /^mem\[(\d+)\] = (\d+)$/
+      value = $2.to_i
+      addresses = [sprintf("%036b\n", $1.to_i).chars.zip(mask).map { |n, m| m == ?0 ? n : m }.join]
+      addresses = addresses.flat_map { |address| [address.sub(?X, ?0), address.sub(?X, ?1)] } while addresses[0][?X]
+      addresses.each { |address| memory[address.to_i(2)] = value }
+    end
+  }
+  .values
+  .sum
