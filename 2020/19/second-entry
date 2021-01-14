@@ -3,7 +3,6 @@
 defns, lines = ARGF.read.split("\n\n")
 defns.sub! /^8:.*$/,  "8: 42 | 42 8"
 defns.sub! /^11:.*$/, "11: 42 31 | 42 11 31"
-defns.tr! '0-9', 'A-J'
 
 groups = defns.lines.sort_by(&:to_i).map do |l|
   name, defn = l.split(":").each &:strip!
@@ -13,7 +12,7 @@ end
 
 regex = /
   # definitions
-  #{groups.join "\n  "}
+  #{groups.join("\n  ").tr('0-9', 'A-J')}
 
   # match "0" (translated to "A" becausec "0" is not a valid group name)
   ^(\g<A>)$
