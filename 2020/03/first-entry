@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
-p $stdin
-  .readlines
+p ARGF
   .map(&:chomp)
   .each_with_index
   .count { |line, i| line[i*3%line.size] == '#' }

@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-forest = $stdin.readlines chomp: true
+forest = ARGF.map &:chomp
 slopes = [[1, 1], [3, 1], [5, 1], [7, 1], [1, 2]]
 counts = slopes.map do |dx, dy|
   forest.each_slice(dy)
