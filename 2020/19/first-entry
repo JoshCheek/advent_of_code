@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+
+defns, lines = ARGF.read.split("\n\n")
+groups = defns.tr('0-9', 'A-J').lines.map do |l|
+  name, defn = l.split(":").each &:strip!
+  defn.gsub!(/[^ |]+/) do |match|
+    match.start_with?('"') ? match[1...-1] : "(\\g<#{match}>)"
+  end
+  "(?<#{name}>#{defn}){0}"
+end
+
+regex = /
+  # definitions
+  #{groups.join "\n  "}
+
+  # match "0" (translated to "A" becausec "0" is not a valid group name)
+  ^(\g<A>)$
+/x
+# => /
+#      # definitions
+#      (?<A>(\g<E>) (\g<B>) (\g<F>)){0}
+#      (?<B>(\g<C>) (\g<D>) | (\g<D>) (\g<C>)){0}
+#      (?<C>(\g<E>) (\g<E>) | (\g<F>) (\g<F>)){0}
+#      (?<D>(\g<E>) (\g<F>) | (\g<F>) (\g<E>)){0}
+#      (?<E>a){0}
+#      (?<F>b){0}
+#
+#      # match "0" (translated to "A" becausec "0" is not a valid group name)
+#      ^(\g<A>)$
+#    /x
+
+p lines.lines.grep(regex).size

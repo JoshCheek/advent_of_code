@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+# It probably works, but it's too slow :(
+pending, rule = {}, "0"
+until gets =~ /^$/
+  name, defn = $_.split ":"
+  defn.strip!
+  defn = "(?:#{defn})" if defn["|"]
+  pending[name] = defn
+end
+1 until rule == (rule = rule.gsub /#{pending.keys.join "|"}/, pending)
+
+p ARGF.grep(/^(#{rule.delete("\"\n ")})$/).count
