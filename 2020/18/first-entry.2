@@ -1,3 +1,0 @@
-#!/usr/bin/env ruby
-Integer.class_eval { alias - * }
-p ARGF.map { |line| eval line.gsub("*", "-") }.sum
