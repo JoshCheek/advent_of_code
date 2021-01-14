@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-puts $stdin.readlines.count { |line|
+puts ARGF.count { |line|
   /^(?<first>\d+)-(?<second>\d+) (?<c>.): (?<password>.*)$/ =~ line
   (password[first.to_i-1] == c) != (password[second.to_i-1] == c)
 }
