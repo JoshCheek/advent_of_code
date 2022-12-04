@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+score = 0
+
+ARGF.each do |line|
+  them, us = line.split.map do
+    case _1
+    when "A", "X" then 1
+    when "B", "Y" then 2
+    when "C", "Z" then 3
+    end
+  end
+
+  win_score =
+    if them == us then 3
+    elsif ((us - 2) % 3) == (them-1) then 6
+    else 0
+    end
+
+  score += us + win_score
+end
+
+puts score
